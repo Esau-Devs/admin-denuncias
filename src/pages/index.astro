@@ -1,11 +1,46 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+import { Login } from "../components/organisms/Login.jsx";
+import Layout from "../layouts/Layout.astro";
 
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout>
-	<Welcome />
+  <main class="container mx-auto flex justify-center items-center min-h-screen">
+    <div
+      class="flex flex-col lg:flex-row bg-white shadow-md rounded-2xl overflow-hidden transition ease-in p-4"
+    >
+      <!--Contenedor de la texto -->
+      <section class="flex flex-1 flex-col justify-center items-center">
+        <div class="flex flex-col items-center mb-4">
+          <img
+            src="/escudo.svg"
+            alt="Logo"
+            class="w-25 h-25 mb-9 drop-shadow-md"
+          />
+          <h1
+            class="text-4xl font-extrabold text-center text-[#0c3b87] mb-1 tracking-tight"
+          >
+            ¡Bienvenido de nuevo!
+          </h1>
+          <p class="text-gray-600 text-center mb-2 text-lg font-medium">
+            Por favor, inicia sesión para continuar
+          </p>
+          <span
+            class="text-xs text-black bg-[#e3eafc] rounded-full px-3 py-1 mt-1 mb-2 shadow-sm"
+          >
+            Acceso seguro y rápido a tu cuenta
+          </span>
+        </div>
+        <div class="w-full max-w-md">
+          <Login client:load />
+        </div>
+      </section>
+      <!--Contenedor de la imagen -->
+      <aside class="lg:flex lg:flex-1 justify-center items-center hidden">
+        <img class="rounded-2xl" src="/camara.jpg" alt="bank" />
+      </aside>
+    </div>
+  </main>
 </Layout>

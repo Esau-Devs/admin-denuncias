@@ -1,0 +1,129 @@
+---
+import { Search } from "../icons/AllIcons.jsx";
+import Denuncia from "../components/molecules/Denuncias.astro";
+import Layout from "../layouts/Layout.astro";
+import {
+    denuncias,
+    Completada,
+    Pendiente,
+    TotalDenuncias,
+    Enproceso,
+} from "../lib/data.ts";
+import Header from "../components/atoms/Header.astro";
+---
+
+<Layout title={`Inicio de denuncias`}>
+    <Header />
+    <main class="bg-[#f5f7f7] min-h-screen m-5">
+        <div class="container mx-auto">
+            <section
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-10"
+            >
+                <article
+                    class="bg-white border border-gray-300 p-6 rounded-2xl shadow-sm text-center"
+                >
+                    <span class="text-4xl font-semibold text-black"
+                        >{TotalDenuncias}</span
+                    >
+                    <p class="text-sm text-gray-600 mt-2">Total de denuncias</p>
+                </article>
+
+                <article
+                    class="bg-white border border-gray-300 p-6 rounded-2xl shadow-sm text-center"
+                >
+                    <span class="text-4xl font-semibold text-black"
+                        >{Pendiente}</span
+                    >
+                    <p class="text-sm text-gray-600 mt-2">
+                        Denuncias pendientes
+                    </p>
+                </article>
+
+                <article
+                    class="bg-white border border-gray-300 p-6 rounded-2xl shadow-sm text-center"
+                >
+                    <span class="text-4xl font-semibold text-black"
+                        >{Enproceso}</span
+                    >
+                    <p class="text-sm text-gray-600 mt-2">
+                        Denuncias en proceso
+                    </p>
+                </article>
+
+                <article
+                    class="bg-white border border-gray-300 p-6 rounded-2xl shadow-sm text-center"
+                >
+                    <span class="text-4xl font-semibold text-black"
+                        >{Completada}</span
+                    >
+                    <p class="text-sm text-gray-600 mt-2">
+                        Denuncias completadas
+                    </p>
+                </article>
+            </section>
+
+            <section>
+                <article
+                    class="px-4 mx-auto lg:px-12 w-full bg-white p-4 rounded-lg shadow-md"
+                >
+                    <form action="">
+                        <div
+                            class="relative flex flex-row items-center justify-center gap-3 rounded-lg"
+                        >
+                            <Search
+                                className="flex items-center absolute start-0 w-6 h-6 mx-3 "
+                            />
+                            <input
+                                type="search"
+                                placeholder="Busqueda"
+                                class="w-full p-2 ps-12 focus:outline-none focus:ring-3 focus:ring-blue-400 rounded-lg bg-gray-300/20"
+                            />
+
+                            <div class="w-40">
+                                <select
+                                    id="estado"
+                                    name="estado"
+                                    class="h-10 border border-gray-300 text-gray-600 text-base rounded-lg block w-full px-2 focus:outline-none"
+                                >
+                                    <option value="" disabled selected
+                                        >Estado</option
+                                    >
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="en_proceso"
+                                        >En proceso</option
+                                    >
+                                    <option value="resuelta">Completada</option>
+                                </select>
+                            </div>
+
+                            <div class="w-30">
+                                <select
+                                    id="prioridad"
+                                    name="prioridad"
+                                    class="h-10 border border-gray-300 text-gray-600 text-base rounded-lg block w-full px-2 focus:outline-none"
+                                    required
+                                >
+                                    <option value="" disabled selected
+                                        >Prioridad</option
+                                    >
+                                    <option value="media">Media</option>
+                                    <option value="alta">Alta</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </article>
+            </section>
+
+            <section
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 py-11 gap-4"
+            >
+                {
+                    denuncias.map((denuncias) => (
+                        <Denuncia denuncia={denuncias} />
+                    ))
+                }
+            </section>
+        </div>
+    </main>
+</Layout>
