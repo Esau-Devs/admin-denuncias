@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Lock, Finger, Gmail } from "../../icons/AllIcons.tsx"
+import { User, Eyes, Gmail, EyesLash } from "../../icons/AllIcons.tsx"
 
 export const Login = () => {
 
@@ -8,6 +8,7 @@ export const Login = () => {
         password: ""
     });
 
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -15,7 +16,9 @@ export const Login = () => {
             [e.target.name]: e.target.value,
         });
     };
-
+    const togglePassword = () => {
+        setShowPassword((prev) => !prev);
+    };
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -47,9 +50,9 @@ export const Login = () => {
                                 peer-focus:top-0 peer-focus:text-xs 
                                 peer-not-placeholder-shown:top-0 peer-not-placeholder-shown:text-xs bg-white px-1"
                     >
-                        Digite su Contraseña
+                        Digite su Email
                     </label>
-                    <Lock className="w-6 h-6 absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 peer-focus:text-[#0c3b87]" />
+                    <User className="w-6 h-6 absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 peer-focus:text-[#0c3b87]" />
                 </div>
 
 
@@ -57,7 +60,7 @@ export const Login = () => {
                 <div className="relative mb-3 flex flex-row justify-center items-center bg-gray-300/5 shadow-md rounded-lg">
 
                     <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         name="password"
                         id="password"
                         onChange={handleChange}
@@ -75,7 +78,15 @@ export const Login = () => {
                     >
                         Digite su Contraseña
                     </label>
-                    <Finger className="w-6 h-6 absolute right-3 top-1/2 -translate-y-1/2 text-gray-700 peer-focus:text-[#0c3b87]" />
+                    <button
+                        type="button"
+                        className="cursor-pointer text-gray-700 peer-focus:text-[#0c3b87]"
+                        onClick={togglePassword}
+                    >
+                        {showPassword ? <Eyes className="w-6 h-6 absolute right-3 top-1/2 -translate-y-1/2 " /> : <EyesLash className="w-6 h-6 absolute right-3 top-1/2 -translate-y-1/2" />}
+
+                    </button>
+
                 </div>
                 <button
                     type="submit" className="cursor-pointer w-full p-3 mt-3 rounded-lg bg-[#0c3b87] hover:bg-[#0c3b87]/85 text-white">
