@@ -1,7 +1,4 @@
 
-
-
-
 export interface Denuncias {
     id: string;
     titulo: string;
@@ -18,7 +15,7 @@ export const denuncias: Denuncias[] = [
         id: "1",
         titulo: "Acoso laboral",
         descripcion: "Se reportó acoso de parte de un superior.",
-        estado: "En Proceso",
+        estado: "En proceso",
         prioridad: "Alta",
         fecha: "2025-07-01",
     },
@@ -67,7 +64,7 @@ export const denuncias: Denuncias[] = [
         titulo: "Nepotismo",
         descripcion: "Promociones injustificadas a familiares de directivos.",
         estado: "Pendiente",
-        prioridad: "Baja",
+        prioridad: "Media",
         fecha: "2025-06-15",
     },
     {
@@ -107,7 +104,7 @@ export const denuncias: Denuncias[] = [
         titulo: "Uso personal de recursos institucionales",
         descripcion: "Empleados usando vehículos oficiales para fines personales.",
         estado: "Pendiente",
-        prioridad: "Baja",
+        prioridad: "Media",
         fecha: "2025-07-03",
     },
     {
@@ -142,6 +139,7 @@ export const denuncias: Denuncias[] = [
         prioridad: "Alta",
         fecha: "2025-06-26",
     },
+
 ];
 
 
@@ -152,5 +150,4 @@ export const TotalDenuncias = denuncias.length;
 
 export const AllDenuncias = [
     ...denuncias,
-
 ]
