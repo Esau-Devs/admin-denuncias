@@ -22,7 +22,7 @@ export const Login = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        if (formData.email === "esau@gmail.com" && formData.password === "password") {
+        if (formData.email === "josh@gmail.com" && formData.password === "password") {
             window.location.href = '/home';
         } else {
             alert("Credenciales incorrectas");
