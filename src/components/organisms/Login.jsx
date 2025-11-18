@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { User, Eyes, Gmail, EyesLash } from "../../icons/AllIcons.jsx"; 
-import { supabase } from "../../lib/supabaseClient.js"; 
+import { User, Eyes, Gmail, EyesLash } from "../../icons/AllIcons.jsx";
+import { supabase } from "../../lib/supabaseClient.js";
 
 export const Login = () => {
     // 1. Estados para formulario y UI
@@ -25,7 +25,7 @@ export const Login = () => {
             [e.target.name]: e.target.value,
         });
     };
-    
+
     const togglePassword = () => {
         setShowPassword((prev) => !prev);
     };
@@ -51,7 +51,7 @@ export const Login = () => {
                     showMessage("Error al iniciar sesión: " + authError.message);
                 }
             } else {
-                window.location.href = '/home'; 
+                window.location.href = '/home';
             }
         } catch (err) {
             showMessage("Ocurrió un error inesperado durante el login.");
@@ -67,7 +67,7 @@ export const Login = () => {
 
         setError("");
         setLoading(true);
-        
+
         try {
             const { error: authError } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
@@ -78,7 +78,7 @@ export const Login = () => {
 
             if (authError) {
                 showMessage("Error al iniciar sesión con Google: " + authError.message);
-                setLoading(false); 
+                setLoading(false);
             }
         } catch (e) {
             showMessage("Excepción al iniciar sesión con Google.");
@@ -167,13 +167,8 @@ export const Login = () => {
                     {loading ? "Verificando..." : "Iniciar sesión"}
                 </button>
             </form>
-            
-            {/* Separador */}
-            <div className="flex items-center my-6">
-                <div className="flex-grow border-t border-gray-300"></div>
-                <span className="flex-shrink mx-4 text-gray-500 text-sm">O</span>
-                <div className="flex-grow border-t border-gray-300"></div>
-            </div>
+
+
         </div>
     )
 }
