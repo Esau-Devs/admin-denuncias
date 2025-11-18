@@ -6,7 +6,8 @@ interface Props {
 }
 
 const { denuncia } = Astro.props;
-const { id, titulo, descripcion, estado, prioridad, fecha } = denuncia;
+// Sincronizamos con los nuevos campos: categoria, fecha_creacion
+const { id, categoria, descripcion, estado, fecha_creacion } = denuncia;
 ---
 
 <article
@@ -16,37 +17,30 @@ const { id, titulo, descripcion, estado, prioridad, fecha } = denuncia;
         <header class="flex mb-4 gap-3">
             <span
                 class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full"
-                transition:name=`denuncias ${id} estado`
+                transition:name={`denuncias ${id} estado`}
             >
                 {estado}
-            </span>
-            <span
-                class="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-full"
-                transition:name=`denuncias ${id} prioridad`
-            >
-                {prioridad}
             </span>
         </header>
 
         <h2
             class="text-lg font-bold text-[#0c3b87] mb-3"
-            transition:name=`denuncias ${id} titulo`
+            transition:name={`denuncias ${id} categoria`}
         >
-            {titulo}
+            {/* Usamos el nuevo campo 'categoria' como título */}
+            {categoria}
         </h2>
 
         <p
             class="text-sm text-gray-700 line-clamp-3"
-            transition:name=`denuncias ${id} descripcion`
+            transition:name={`denuncias ${id} descripcion`}
         >
             {descripcion}
         </p>
 
-        <footer class="mt-4 text-xs text-gray-500">
-            Fecha de denuncia: <span
-                class="font-semibold"
-                transition:name=`denuncias ${id} fecha`>{fecha}</span
-            >
+        <footer class="mt-auto text-xs text-gray-500">
+            {/* Usamos el nuevo campo 'fecha_creacion' */}
+            Fecha de creación: <span class="font-semibold">{fecha_creacion}</span>
         </footer>
     </a>
 </article>

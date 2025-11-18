@@ -1,153 +1,57 @@
+// data.ts (CÓDIGO COMPLETO)
 
+// Define la estructura de una Denuncia
 export interface Denuncias {
     id: string;
-    titulo: string;
+    user_id: string; 
+    categoria: string; 
+    ubicacion: string; 
     descripcion: string;
-    estado: string;
-    prioridad: string;
-    fecha: string;
+    evidencias: any; // Arreglo de URLs o JSON
+    fecha_creacion: string; 
+    estado: string; 
 }
 
+/**
+ * Función para obtener las denuncias desde la API de FastAPI.
+ */
+export const fetchDenuncias = async (): Promise<Denuncias[]> => {
+    try {
+        // AJUSTA ESTA URL si es necesario
+        const API_URL = "http://127.0.0.1:8001/api/denuncias";
+        
+        const response = await fetch(API_URL);
+        
+        if (!response.ok) {
+            throw new Error(`Error al obtener denuncias: ${response.status} ${response.statusText}`);
+        }
 
+        const data: Denuncias[] = await response.json();
+        return data;
 
-export const denuncias: Denuncias[] = [
-    {
-        id: "1",
-        titulo: "Acoso laboral",
-        descripcion: "Se reportó acoso de parte de un superior.",
-        estado: "En proceso",
-        prioridad: "Alta",
-        fecha: "2025-07-01",
-    },
-    {
-        id: "2",
-        titulo: "Corrupción institucional",
-        descripcion: "Uso indebido de fondos públicos.",
-        estado: "En proceso",
-        prioridad: "Media",
-        fecha: "2025-07-02",
-    },
-    {
-        id: "3",
-        titulo: "Discriminación laboral",
-        descripcion: "Empleado reporta trato desigual por motivos de género.",
-        estado: "Pendiente",
-        prioridad: "Alta",
-        fecha: "2025-06-25",
-    },
-    {
-        id: "4",
-        titulo: "Fraude financiero",
-        descripcion: "Manipulación de cifras en reportes contables.",
-        estado: "Completada",
-        prioridad: "Alta",
-        fecha: "2025-06-30",
-    },
-    {
-        id: "5",
-        titulo: "Violación de privacidad",
-        descripcion: "Acceso no autorizado a información confidencial.",
-        estado: "En proceso",
-        prioridad: "Alta",
-        fecha: "2025-07-01",
-    },
-    {
-        id: "6",
-        titulo: "Conflicto de intereses",
-        descripcion: "Empleado involucrado en contratación de familiares.",
-        estado: "Completada",
-        prioridad: "Media",
-        fecha: "2025-06-28",
-    },
-    {
-        id: "7",
-        titulo: "Nepotismo",
-        descripcion: "Promociones injustificadas a familiares de directivos.",
-        estado: "Pendiente",
-        prioridad: "Media",
-        fecha: "2025-06-15",
-    },
-    {
-        id: "8",
-        titulo: "Retraso en pagos",
-        descripcion: "Retrasos recurrentes en el pago a proveedores.",
-        estado: "En proceso",
-        prioridad: "Media",
-        fecha: "2025-06-29",
-    },
-    {
-        id: "9",
-        titulo: "Desvío de recursos",
-        descripcion: "Fondos asignados no se usaron para el proyecto previsto.",
-        estado: "Completada",
-        prioridad: "Alta",
-        fecha: "2025-07-03",
-    },
-    {
-        id: "10",
-        titulo: "Acoso sexual",
-        descripcion: "Empleado reporta conducta inapropiada de un compañero.",
-        estado: "En proceso",
-        prioridad: "Alta",
-        fecha: "2025-06-20",
-    },
-    {
-        id: "11",
-        titulo: "Falsificación de documentos",
-        descripcion: "Se descubrieron documentos oficiales alterados.",
-        estado: "En proceso",
-        prioridad: "Media",
-        fecha: "2025-06-18",
-    },
-    {
-        id: "12",
-        titulo: "Uso personal de recursos institucionales",
-        descripcion: "Empleados usando vehículos oficiales para fines personales.",
-        estado: "Pendiente",
-        prioridad: "Media",
-        fecha: "2025-07-03",
-    },
-    {
-        id: "13",
-        titulo: "Violación de normas de seguridad",
-        descripcion: "Trabajadores sin equipo de protección.",
-        estado: "Pendiente",
-        prioridad: "Alta",
-        fecha: "2025-06-27",
-    },
-    {
-        id: "14",
-        titulo: "Abuso de autoridad",
-        descripcion: "Superior impone castigos injustificados.",
-        estado: "En proceso",
-        prioridad: "Media",
-        fecha: "2025-07-02",
-    },
-    {
-        id: "15",
-        titulo: "Manejo indebido de residuos",
-        descripcion: "Desechos peligrosos fueron mal dispuestos.",
-        estado: "Completada",
-        prioridad: "Alta",
-        fecha: "2025-06-26",
-    },
-    {
-        id: "16",
-        titulo: "Manejo indebido de residuos",
-        descripcion: "Desechos peligrosos fueron mal dispuestos.",
-        estado: "Completada",
-        prioridad: "Alta",
-        fecha: "2025-06-26",
-    },
+    } catch (error) {
+        console.error("ERROR AL OBTENER DATOS DE FASTAPI:", error);
+        throw error;
+    }
+};
 
-];
+export const updateDenunciaEstado = async (denunciaId: string, nuevoEstado: string) => {
+    const API_URL = `http://127.0.0.1:8001/api/denuncias/${denunciaId}`; //
+    
+    const response = await fetch(API_URL, {
+        method: 'PUT', // Usamos PUT para actualizar
+        headers: {
+            'Content-Type': 'application/json',
+            // Añade token de autenticación si es necesario (ej: Authorization: `Bearer ${token}`)
+        },
+        // Enviamos el nuevo estado en el cuerpo de la petición
+        body: JSON.stringify({ estado: nuevoEstado }), 
+    });
 
+    if (!response.ok) {
+        throw new Error(`Error ${response.status} al actualizar el estado de la denuncia ${denunciaId}.`);
+    }
 
-export const Enproceso = denuncias.filter((d) => d.estado === "En proceso").length;
-export const Completada = denuncias.filter((d) => d.estado === "Completada").length;
-export const Pendiente = denuncias.filter((d) => d.estado === "Pendiente").length;
-export const TotalDenuncias = denuncias.length;
-
-export const AllDenuncias = [
-    ...denuncias,
-]
+    // Devuelve la respuesta, usualmente el objeto actualizado
+    return response.json(); 
+};
