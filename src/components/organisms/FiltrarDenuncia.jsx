@@ -123,7 +123,7 @@ const FiltrarDenuncia = () => {
         const [isSaving, setIsSaving] = useState(false);
 
         // Lista de estados disponibles
-        const availableStatus = ['pendiente', 'en proceso', 'resuelta'];
+        const availableStatus = ['pendiente', 'en_proceso', 'resuelta'];
 
         const getEstadoColor = (estado) => {
             switch (estado?.toLowerCase()) {
@@ -223,8 +223,8 @@ const FiltrarDenuncia = () => {
                             <button
                                 onClick={handleSaveStatus}
                                 className={`px-4 py-2 rounded-lg text-white font-semibold transition duration-200 whitespace-nowrap ${isSaving || currentStatus === denuncia.estado.toLowerCase()
-                                        ? 'bg-gray-400 cursor-not-allowed'
-                                        : 'bg-[#0c3b87] hover:bg-[#092a5f]'
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-[#0c3b87] hover:bg-[#092a5f]'
                                     }`}
                                 disabled={isSaving || currentStatus === denuncia.estado.toLowerCase()}
                             >
