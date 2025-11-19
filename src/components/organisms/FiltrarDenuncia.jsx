@@ -124,6 +124,11 @@ const FiltrarDenuncia = () => {
 
         // Lista de estados disponibles
         const availableStatus = ['pendiente', 'en_proceso', 'resuelta'];
+        const statusMap = {
+            pendiente: 'Pendiente',
+            en_proceso: 'En proceso',
+            resuelta: 'Resuelta'
+        };
 
         const getEstadoColor = (estado) => {
             switch (estado?.toLowerCase()) {
@@ -216,7 +221,7 @@ const FiltrarDenuncia = () => {
                             >
                                 {availableStatus.map(status => (
                                     <option key={status} value={status}>
-                                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                                        {statusMap[status]}
                                     </option>
                                 ))}
                             </select>
