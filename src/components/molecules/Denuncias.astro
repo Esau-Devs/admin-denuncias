@@ -17,7 +17,7 @@ const { id, categoria, descripcion, estado, fecha_creacion } = denuncia;
         <header class="flex mb-4 gap-3">
             <span
                 class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full"
-                transition:name={`denuncias ${id} estado`}
+                data-transition-name={`denuncias ${id} estado`}
             >
                 {estado}
             </span>
@@ -25,7 +25,7 @@ const { id, categoria, descripcion, estado, fecha_creacion } = denuncia;
 
         <h2
             class="text-lg font-bold text-[#0c3b87] mb-3"
-            transition:name={`denuncias ${id} categoria`}
+            data-transition-name={`denuncias ${id} categoria`}
         >
             {/* Usamos el nuevo campo 'categoria' como título */}
             {categoria}
@@ -33,14 +33,16 @@ const { id, categoria, descripcion, estado, fecha_creacion } = denuncia;
 
         <p
             class="text-sm text-gray-700 line-clamp-3"
-            transition:name={`denuncias ${id} descripcion`}
+            data-transition-name={`denuncias ${id} descripcion`}
         >
             {descripcion}
         </p>
 
         <footer class="mt-auto text-xs text-gray-500">
             {/* Usamos el nuevo campo 'fecha_creacion' */}
-            Fecha de creación: <span class="font-semibold">{fecha_creacion}</span>
+            Fecha de creación: <span class="font-semibold"
+                >{fecha_creacion}</span
+            >
         </footer>
     </a>
 </article>
