@@ -207,7 +207,7 @@ const FiltrarDenuncia = () => {
                     <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div className="flex items-center gap-3 w-full">
                             <span className="text-sm text-gray-500 font-medium white space-nowrap">Estado actual:</span>
-                            <span className={`${getEstadoColor(currentStatus)} text-sm font-bold px-3 py-1 rounded-full uppercase whitespace-nowrap`}>
+                            <span className={`${getEstadoColor(currentStatus)} text-sm font-bold px-3 py-1 rounded-full uppercase `}>
                                 {statusMap[currentStatus]}
                             </span>
                         </div>

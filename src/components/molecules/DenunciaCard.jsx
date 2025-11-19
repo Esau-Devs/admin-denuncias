@@ -5,6 +5,11 @@ import React from 'react';
 const DenunciaCard = ({ denuncia, onClick }) => {
     // Desestructuramos los campos 
     const { id, categoria, descripcion, estado, fecha_creacion } = denuncia;
+    const statusMap = {
+        pendiente: 'Pendiente',
+        en_proceso: 'En proceso',
+        resuelta: 'Resuelta'
+    };
 
     const getEstadoColor = (estado) => {
         switch (estado?.toLowerCase()) {
@@ -26,7 +31,7 @@ const DenunciaCard = ({ denuncia, onClick }) => {
                 <header className="flex mb-4 gap-3">
                     <span className={`${getEstadoColor(estado)} text-xs font-bold px-3 py-1 rounded-full uppercase`}
                     >
-                        {estado}
+                        {statusMap[estado]}
                     </span>
                 </header>
 
