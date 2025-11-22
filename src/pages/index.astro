@@ -57,29 +57,50 @@ import Layout from "../layouts/Layout.astro";
   import { supabase } from "../lib/supabaseClient.js";
 
   const checkIfLoggedIn = async () => {
-    // @ts-ignore
-    const { data } = await supabase.auth.getSession();
-    const session = data?.session;
+    try {
+      // Primero intenta obtener la sesión del storage
+      // @ts-ignore
+      const { data, error } = await supabase.auth.getSession();
 
-    console.log("Sesión en login:", session); // Debug
+      if (error) {
+        console.error("Error obteniendo sesión:", error);
+        showLogin();
+        return;
+      }
 
-    if (session) {
-      // Ya está logueado, redirigir a home
-      console.log("Usuario logueado, redirigiendo a /home");
-      window.location.replace("/home");
-      return;
+      const session = data?.session;
+
+      if (session && session.user) {
+        // Verificar que el token no esté expirado
+        const expiresAt = session.expires_at;
+        const now = Math.floor(Date.now() / 1000);
+
+        if (expiresAt && expiresAt > now) {
+          // Sesión válida, redirigir a home
+          window.location.replace("/home");
+          return;
+        }
+      }
+
+      // No hay sesión válida, mostrar login
+      showLogin();
+    } catch (err) {
+      console.error("Error en checkIfLoggedIn:", err);
+      showLogin();
     }
+  };
 
-    // No está logueado, mostrar formulario
+  const showLogin = () => {
     document.getElementById("auth-check")?.classList.add("hidden");
     document.getElementById("login-content")?.classList.remove("hidden");
   };
 
+  // Ejecutar verificación
   checkIfLoggedIn();
 
+  // Escuchar cambios de autenticación
   // @ts-ignore
   supabase.auth.onAuthStateChange((event, session) => {
-    console.log("Auth event:", event, session); // Debug
     if (event === "SIGNED_IN" && session) {
       window.location.replace("/home");
     }
