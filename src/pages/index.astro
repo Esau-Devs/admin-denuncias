@@ -52,3 +52,36 @@ import Layout from "../layouts/Layout.astro";
     </div>
   </main>
 </Layout>
+
+<script>
+  import { supabase } from "../lib/supabaseClient.js";
+
+  const checkIfLoggedIn = async () => {
+    // @ts-ignore
+    const { data } = await supabase.auth.getSession();
+    const session = data?.session;
+
+    console.log("Sesión en login:", session); // Debug
+
+    if (session) {
+      // Ya está logueado, redirigir a home
+      console.log("Usuario logueado, redirigiendo a /home");
+      window.location.replace("/home");
+      return;
+    }
+
+    // No está logueado, mostrar formulario
+    document.getElementById("auth-check")?.classList.add("hidden");
+    document.getElementById("login-content")?.classList.remove("hidden");
+  };
+
+  checkIfLoggedIn();
+
+  // @ts-ignore
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log("Auth event:", event, session); // Debug
+    if (event === "SIGNED_IN" && session) {
+      window.location.replace("/home");
+    }
+  });
+</script>

@@ -3,18 +3,62 @@ import { ShieldAlt } from "../../icons/AllIcons.jsx";
 ---
 
 <header class="w-full p-8 items-center shadow bg-white">
-    <nav class="container mx-auto flex justify-between">
+    <nav
+        class="container mx-auto flex justify-between items-center md:flex-row flex-col gap-4"
+    >
         <a href="/home" class="flex flex-row justify-center items-center gap-3">
-            <ShieldAlt className="w-12 h-12 " />
-            <div class="flex flex-col line leading-none">
+            <ShieldAlt className="w-12 h-12" />
+            <div class="flex flex-col leading-none">
                 <h1 class="text-lg font-semibold">
                     Portal de administracion de denuncias
                 </h1>
-                <span class="font-normal"
-                    >Fiscal&iacute;a General de la Rep&uacute;blica</span
-                >
+                <span class="font-normal">
+                    Fiscalía General de la República
+                </span>
             </div>
         </a>
-        <!--Imagen del admin -->
+
+        <!-- Botón de Cerrar Sesión -->
+        <button
+            id="logout-btn"
+            class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600
+                   bg-gray-50 border border-gray-200 rounded-lg
+                   hover:bg-red-50 hover:text-red-600 hover:border-red-200
+                   transition-all duration-200 cursor-pointer"
+        >
+            <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                ></path>
+            </svg>
+            Cerrar Sesión
+        </button>
     </nav>
 </header>
+
+<script>
+    // @ts-ignore
+    import { supabase } from "../../lib/supabaseClient.js";
+
+    document
+        .getElementById("logout-btn")
+        ?.addEventListener("click", async () => {
+            // 1. Cerrar sesión en Supabase
+            await supabase.auth.signOut();
+
+            // 2. Limpiar todo el almacenamiento local
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 3. Redirigir al login
+            window.location.href = "/";
+        });
+</script>
