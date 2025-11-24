@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect } from 'react';
-// 💡 Importar la nueva función updateDenunciaEstado
 import { fetchDenuncias, updateDenunciaEstado } from '../../lib/data.ts';
 import DenunciaCard from '../molecules/DenunciaCard.jsx';
 import { SearchIcon, StateIcon } from '../../icons/AllIcons.jsx';
@@ -30,7 +30,7 @@ const FiltrarDenuncia = () => {
 
     const availableStates = ['pendiente', 'en_proceso', 'resuelta'];
 
-    //  FUNCIÓN DE RECARGA
+    //  FUNCIÓN DE RECARGA
     const refreshDenuncias = async () => {
         setLoading(true);
         try {
@@ -103,31 +103,31 @@ const FiltrarDenuncia = () => {
             estadoMatch = denunciaEstado === filtroEstado;
         }
 
-        const searchMatch = //
+        const searchMatch =
             denuncia.categoria.toLowerCase().includes(searchLower) ||
-            denuncia.descripcion.toLowerCase().includes(searchLower);
+            denuncia.descripcion.toLowerCase().includes(searchLower) ||
+            (denuncia.usuario?.nombre_completo || '').toLowerCase().includes(searchLower) ||
+            (denuncia.usuario?.dui || '').toLowerCase().includes(searchLower);
 
         return estadoMatch && searchMatch;
     });
 
 
-    // --- 8. COMPONENTE MODAL EN LÍNEA  ---
+    // --- 8. COMPONENTE MODAL EN LÍNEA CON DATOS DE USUARIO ---
     const DenunciaDetailModal = ({ denuncia, onClose, onUpdateSuccess }) => {
         if (!denuncia) return null;
 
-        //  FIX 1: URL BASE DE SUPABASE STORAGE (TU PROYECTO)
         const SUPABASE_STORAGE_BASE_URL = 'https://aikjdjlykotamrgyogtp.supabase.co/storage/v1/object/public/user-evidence-vault/';
 
-        //  ESTADOS para manejar el selector de estado
         const [currentStatus, setCurrentStatus] = useState(denuncia.estado.toLowerCase());
         const [isSaving, setIsSaving] = useState(false);
 
-        // Lista de estados disponibles
-        const availableStatus = ['pendiente', 'en_proceso', 'resuelta'];
+        const availableStatus = ['pendiente', 'en_proceso', 'resuelta', 'no_corresponde'];
         const statusMap = {
             pendiente: 'Pendiente',
             en_proceso: 'En proceso',
-            resuelta: 'Resuelta'
+            resuelta: 'Resuelta',
+            no_corresponde: 'No Corresponde'
         };
 
         const getEstadoColor = (estado) => {
@@ -135,11 +135,11 @@ const FiltrarDenuncia = () => {
                 case 'pendiente': return 'bg-yellow-100 text-yellow-700';
                 case 'en_proceso': return 'bg-blue-100 text-blue-700';
                 case 'resuelta': return 'bg-green-100 text-green-700';
+                case 'no_corresponde': return 'bg-red-100 text-red-700';
                 default: return 'bg-gray-100 text-gray-700';
             }
         };
 
-        //  FUNCIÓN PARA GUARDAR EL NUEVO ESTADO
         const handleSaveStatus = async () => {
             if (currentStatus === denuncia.estado.toLowerCase()) {
                 alert('El estado ya es el seleccionado.');
@@ -148,12 +148,9 @@ const FiltrarDenuncia = () => {
 
             setIsSaving(true);
             try {
-                // Llama a la función de la API
                 await updateDenunciaEstado(denuncia.id, currentStatus);
-                //  VUELVE A CARGAR LOS DATOS PRINCIPALES
                 onUpdateSuccess();
                 onClose();
-
             } catch (error) {
                 console.error("Error al guardar el nuevo estado:", error);
                 alert('Fallo al actualizar el estado. Revisa la consola y la API.');
@@ -162,7 +159,6 @@ const FiltrarDenuncia = () => {
             }
         };
 
-        // Formatear la fecha
         const formattedDate = new Date(denuncia.fecha_creacion).toLocaleDateString('es-ES', {
             year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
         });
@@ -180,7 +176,6 @@ const FiltrarDenuncia = () => {
                     }
                 } catch (e) {
                     console.error("Error al parsear evidencias:", e);
-                    // Si falla, asumimos que es una sola cadena de texto que debe ser la ruta.
                     evidenciasArray = [denuncia.evidencias];
                 }
             }
@@ -194,7 +189,9 @@ const FiltrarDenuncia = () => {
                         onClick={onClose}
                         className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition cursor-pointer"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                     </button>
 
                     <h2 className="text-xl font-bold text-gray-900 mt-0 mb-4">
@@ -202,11 +199,10 @@ const FiltrarDenuncia = () => {
                     </h2>
 
                     <hr className="border-t-2 border-gray-200 opacity-75 mb-6" />
-
-                    {/*  NUEVO BLOQUE: CAMBIADOR DE ESTADO */}
+                    {/* BLOQUE: CAMBIADOR DE ESTADO */}
                     <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div className="flex items-center gap-3 w-full">
-                            <span className="text-sm text-gray-500 font-medium white space-nowrap">Estado actual:</span>
+                            <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Estado actual:</span>
                             <span className={`${getEstadoColor(currentStatus)} text-sm font-bold px-3 py-1 rounded-full uppercase flex-shrink-0`}>
                                 {statusMap[currentStatus]}
                             </span>
@@ -237,29 +233,61 @@ const FiltrarDenuncia = () => {
                             </button>
                         </div>
                     </div>
+
+                    {/* 👤 NUEVA SECCIÓN: INFORMACIÓN DEL DENUNCIANTE */}
+                    <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+                        <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+                            </svg>
+                            Información del Denunciante
+                        </h3>
+                        <div className="space-y-2">
+                            <p className="flex items-center gap-2">
+                                <span className="text-sm text-blue-700 font-medium">Nombre:</span>
+                                <span className="text-gray-900 font-semibold">
+                                    {denuncia.usuario?.nombre_completo || 'No disponible'}
+                                </span>
+                            </p>
+                            <p className="flex items-center gap-2">
+                                <span className="text-sm text-blue-700 font-medium">DUI:</span>
+                                <span className="text-gray-900 font-mono font-semibold">
+                                    {denuncia.usuario?.dui || 'No disponible'}
+                                </span>
+                            </p>
+                            {denuncia.usuario?.genero && (
+                                <p className="flex items-center gap-2">
+                                    <span className="text-sm text-blue-700 font-medium">Género:</span>
+                                    <span className="text-gray-900 capitalize">
+                                        {denuncia.usuario.genero}
+                                    </span>
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+
+
+                    {/* INFORMACIÓN DE LA DENUNCIA */}
                     <div className="space-y-4 mb-6 text-sm md:text-base">
                         <p>
-                            <span className="text-sm text-gray-500 overflow-hidden break-words">Categoría:</span> {denuncia.categoria}
+                            <span className="text-sm text-gray-500">Categoría:</span> {denuncia.categoria}
                         </p>
                         <p>
                             <span className="text-sm text-gray-500">Ubicación:</span> {denuncia.ubicacion}
                         </p>
 
                         <p className="text-sm text-gray-500 pt-2">Descripción:</p>
-                        <p className="text-gray-700 whitespace-pre-wrap p-4 bg-gray-50 border rounded-lg shadow-inner">{denuncia.descripcion}</p>
+                        <p className="text-gray-700 whitespace-pre-wrap p-4 bg-gray-50 border rounded-lg shadow-inner">
+                            {denuncia.descripcion}
+                        </p>
 
                         {evidenciasArray.length > 0 && (
                             <div>
                                 <p className="text-sm text-gray-500 mt-3">Evidencias ({evidenciasArray.length}):</p>
                                 <div className="flex flex-wrap gap-2 mt-2">
                                     {evidenciasArray.map((url, index) => {
-
-                                        //  CORRECCIÓN 1: Evitamos la doble concatenación.
-                                        // Si la URL ya empieza por 'http', significa que ya está completa.
                                         const finalUrl = url;
-
-                                        // CORRECCIÓN 2 (Adicional, para seguridad): Limpiamos la URL por si se guardó mal en la DB.
-                                        // Esto busca y reemplaza cualquier duplicación del path del bucket.
                                         const cleanedUrl = finalUrl.replace(
                                             /(\/storage\/v1\/object\/public\/user-evidence-vault\/){2,}/,
                                             '/storage/v1/object/public/user-evidence-vault/'
@@ -268,7 +296,7 @@ const FiltrarDenuncia = () => {
                                         return (
                                             <a
                                                 key={index}
-                                                href={cleanedUrl} // Usamos la URL corregida y limpia
+                                                href={cleanedUrl}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="text-blue-900 hover:text-gray-900 hover:underline text-lg truncate max-w-full font-medium"
@@ -281,8 +309,8 @@ const FiltrarDenuncia = () => {
                             </div>
                         )}
                         <p>
-                            <span className="text-sm text-gray-500">Fecha de Creación:
-                            </span> <p> {formattedDate}</p>
+                            <span className="text-sm text-gray-500">Fecha de Creación:</span>
+                            <p>{formattedDate}</p>
                         </p>
                     </div>
                 </div>
@@ -290,17 +318,24 @@ const FiltrarDenuncia = () => {
         );
     };
 
+    const availableStatus = ['pendiente', 'en_proceso', 'resuelta', 'no_corresponde'];
+    const statusMap = {
+        pendiente: 'Pendiente',
+        en_proceso: 'En proceso',
+        resuelta: 'Resuelta',
+        no_corresponde: 'No Corresponde'
+    };
 
     return (
         <div className="py-6">
-            {/* ... (Sección de Filtros, código existente) ... */}
+            {/* Sección de Filtros */}
             <section className="flex flex-col md:flex-row gap-4 p-4 mb-6 bg-white border border-gray-200 rounded-xl shadow-md">
                 {/* 1. Búsqueda por texto */}
                 <div className="relative flex-grow">
                     <input
                         type="text"
                         name="search"
-                        placeholder="Buscar por Categoría o Descripción..."
+                        placeholder="Buscar por Categoría, Descripción, Nombre o DUI..."
                         value={filter.search}
                         onChange={handleFilterChange}
                         className="w-full p-2.5 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0c3b87] focus:border-[#0c3b87]"
@@ -317,9 +352,9 @@ const FiltrarDenuncia = () => {
                         className="w-full p-2.5 pl-10 border border-gray-300 rounded-lg appearance-none bg-white focus:ring-2 focus:ring-[#0c3b87] focus:border-[#0c3b87] pr-8"
                     >
                         <option value="">Todos los Estados</option>
-                        {availableStates.map(state => (
+                        {availableStatus.map(state => (
                             <option key={state} value={state}>
-                                {state.charAt(0).toUpperCase() + state.slice(1)}
+                                {statusMap[state]}
                             </option>
                         ))}
                     </select>
@@ -329,7 +364,6 @@ const FiltrarDenuncia = () => {
 
             {/* Lista de Denuncias */}
             <div className="py-4">
-                {/* ... Lógica de loading ... */}
                 {loading && !error && (
                     <div className="flex flex-col items-center justify-center h-48 bg-white rounded-xl shadow-lg">
                         <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
@@ -350,19 +384,17 @@ const FiltrarDenuncia = () => {
                         <DenunciaCard
                             key={denuncia.id}
                             denuncia={denuncia}
-
                             onClick={handleCardClick}
                         />
                     ))}
                 </div>
             </div>
 
-            {/* Renderizar Modal Condicionalmente */}
+            {/* Renderizar Modal */}
             {isModalOpen && (
                 <DenunciaDetailModal
                     denuncia={selectedDenuncia}
                     onClose={handleCloseModal}
-                    //  PASAMOS LA FUNCIÓN DE RECARGA: onUpdateSuccess
                     onUpdateSuccess={refreshDenuncias}
                 />
             )}

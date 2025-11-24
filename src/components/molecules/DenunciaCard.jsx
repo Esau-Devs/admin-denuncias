@@ -8,7 +8,8 @@ const DenunciaCard = ({ denuncia, onClick }) => {
     const statusMap = {
         pendiente: 'Pendiente',
         en_proceso: 'En proceso',
-        resuelta: 'Resuelta'
+        resuelta: 'Resuelta',
+        no_corresponde: 'No Corresponde'
     };
 
     const getEstadoColor = (estado) => {
@@ -16,6 +17,7 @@ const DenunciaCard = ({ denuncia, onClick }) => {
             case 'pendiente': return 'bg-yellow-100 text-yellow-700';
             case 'en_proceso': return 'bg-blue-100 text-blue-700';
             case 'resuelta': return 'bg-green-100 text-green-700';
+            case 'no_corresponde': return 'bg-red-100 text-red-700';
             default: return 'bg-gray-100 text-gray-700';
         }
     };
@@ -36,7 +38,7 @@ const DenunciaCard = ({ denuncia, onClick }) => {
                 </header>
 
                 <h2 className="text-lg font-bold text-[#0c3b87] mb-3 ">
-                    {categoria}
+                    {categoria.toUpperCase()}
                 </h2>
 
                 <p className="text-sm text-gray-700 line-clamp-3 mb-4">
