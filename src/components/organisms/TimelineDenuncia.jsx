@@ -175,7 +175,7 @@ export const TimelineViewer = ({ denunciaId, isAdmin = false }) => {
     );
 };
 
-// --- COMPONENTE: ADMIN TIMELINE MANAGER ---
+// --- COMPONENTE: ADMIN TIMELINE MANAGER (CON SOPORTE PARA TOKEN) ---
 export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onClose }) => {
     const [modoCreacion, setModoCreacion] = useState('plantillas');
     const [loading, setLoading] = useState(false);
@@ -193,7 +193,30 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
 
     const API_URL = 'https://backend-api-638220759621.us-west1.run.app';
 
-    // PLANTILLAS COMPLETAS SEGÚN PROCESO FGR
+    // 🔑 FUNCIÓN PARA OBTENER TOKEN
+    const getAuthHeaders = () => {
+        const headers = {
+            // NO incluir Content-Type aquí porque usamos FormData
+        };
+
+        // Intentar obtener token del localStorage/sessionStorage
+        const token =
+            localStorage.getItem('token') ||
+            localStorage.getItem('access_token') ||
+            sessionStorage.getItem('token') ||
+            sessionStorage.getItem('access_token');
+
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+            console.log('🔑 Token encontrado y agregado al header');
+        } else {
+            console.warn('⚠️  No se encontró token en localStorage/sessionStorage');
+        }
+
+        return headers;
+    };
+
+    // PLANTILLAS COMPLETAS SEGÚN PROCESO FGR (las mismas 30)
     const todasLasPlantillas = [
         { tipo: 'recepcion', titulo: 'Denuncia Recibida', descripcion: 'Su denuncia ha sido recibida y registrada en el sistema. Se le ha asignado un número de caso y está en proceso de evaluación preliminar.', estado_asociado: 'pendiente' },
         { tipo: 'asignacion_fiscal', titulo: 'Fiscal Asignado', descripcion: 'Se ha asignado un Fiscal Auxiliar para la evaluación inicial de su denuncia.', estado_asociado: 'pendiente' },
@@ -276,16 +299,20 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
 
             console.log('📤 Enviando timeline a:', `${API_URL}/timeline/crear`);
 
+            // 🔑 Obtener headers con token
+            const headers = getAuthHeaders();
+
             const response = await fetch(`${API_URL}/timeline/crear`, {
                 method: 'POST',
-                credentials: 'include',
+                credentials: 'include', // También enviar cookies por si acaso
+                headers: headers,
                 body: formDataToSend
             });
 
             console.log('📡 Response status:', response.status);
 
             if (!response.ok) {
-                const errorData = await response.json();
+                const errorData = await response.json().catch(() => ({ detail: response.statusText }));
                 throw new Error(errorData.detail || 'Error al crear timeline');
             }
 
@@ -354,14 +381,18 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
             formDataToSend.append('nombre_actualizador', formData.nombre_actualizador);
             formDataToSend.append('metadata_json', JSON.stringify(metadataObj));
 
+            // 🔑 Obtener headers con token
+            const headers = getAuthHeaders();
+
             const response = await fetch(`${API_URL}/timeline/crear`, {
                 method: 'POST',
                 credentials: 'include',
+                headers: headers,
                 body: formDataToSend
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
+                const errorData = await response.json().catch(() => ({ detail: response.statusText }));
                 throw new Error(errorData.detail || 'Error al crear timeline');
             }
 
