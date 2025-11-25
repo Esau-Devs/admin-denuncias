@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
-// --- COMPONENTE: TIMELINE VIEWER ---
-export const TimelineViewer = ({ denunciaId }) => {
+// --- COMPONENTE: TIMELINE VIEWER (CON SOPORTE PARA ADMIN) ---
+export const TimelineViewer = ({ denunciaId, isAdmin = false }) => {
     const [timelineData, setTimelineData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -15,7 +15,15 @@ export const TimelineViewer = ({ denunciaId }) => {
                 setLoading(true);
                 setError(null);
 
-                const response = await fetch(`${API_URL}/timeline/${denunciaId}`, {
+                // Si es admin, usa el endpoint sin verificación de ownership
+                const endpoint = isAdmin
+                    ? `${API_URL}/timeline/todas/${denunciaId}`
+                    : `${API_URL}/timeline/${denunciaId}`;
+
+                console.log('🔍 Fetching timeline desde:', endpoint);
+                console.log('👤 Modo admin:', isAdmin);
+
+                const response = await fetch(endpoint, {
                     method: 'GET',
                     credentials: 'include',
                     headers: {
@@ -23,7 +31,12 @@ export const TimelineViewer = ({ denunciaId }) => {
                     }
                 });
 
+                console.log('📡 Response status:', response.status);
+
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('No autorizado. Verifica tu sesión.');
+                    }
                     throw new Error(`Error ${response.status}: ${response.statusText}`);
                 }
 
@@ -41,7 +54,7 @@ export const TimelineViewer = ({ denunciaId }) => {
         if (denunciaId) {
             fetchTimeline();
         }
-    }, [denunciaId, API_URL]);
+    }, [denunciaId, API_URL, isAdmin]);
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);
@@ -66,7 +79,8 @@ export const TimelineViewer = ({ denunciaId }) => {
     if (error) {
         return (
             <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center text-red-600">
-                <p className="text-sm">⚠️ Error al cargar timeline: {error}</p>
+                <p className="text-sm font-semibold mb-2">⚠️ Error al cargar timeline</p>
+                <p className="text-xs">{error}</p>
             </div>
         );
     }
@@ -170,18 +184,17 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
     const [formData, setFormData] = useState({
         titulo: '',
         descripcion: '',
-        nuevo_estado: '', // Estado que se guardará en denuncias.estado
+        nuevo_estado: '',
         nombre_actualizador: 'Fiscal FGR',
         metadata: {}
     });
 
     const [metadataFields, setMetadataFields] = useState([]);
 
-    const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:8000';
+    const API_URL = 'https://backend-api-638220759621.us-west1.run.app';
 
     // PLANTILLAS COMPLETAS SEGÚN PROCESO FGR
     const todasLasPlantillas = [
-        // Las mismas 30 plantillas que antes, pero ahora guardamos el estado completo
         { tipo: 'recepcion', titulo: 'Denuncia Recibida', descripcion: 'Su denuncia ha sido recibida y registrada en el sistema. Se le ha asignado un número de caso y está en proceso de evaluación preliminar.', estado_asociado: 'pendiente' },
         { tipo: 'asignacion_fiscal', titulo: 'Fiscal Asignado', descripcion: 'Se ha asignado un Fiscal Auxiliar para la evaluación inicial de su denuncia.', estado_asociado: 'pendiente' },
         { tipo: 'revision_competencia', titulo: 'Revisión de Competencia', descripcion: 'Se está verificando si los hechos denunciados corresponden a la competencia de la Fiscalía General de la República.', estado_asociado: 'pendiente' },
@@ -261,11 +274,15 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
             formDataToSend.append('nombre_actualizador', 'Fiscal FGR');
             formDataToSend.append('metadata_json', JSON.stringify({}));
 
+            console.log('📤 Enviando timeline a:', `${API_URL}/timeline/crear`);
+
             const response = await fetch(`${API_URL}/timeline/crear`, {
                 method: 'POST',
                 credentials: 'include',
                 body: formDataToSend
             });
+
+            console.log('📡 Response status:', response.status);
 
             if (!response.ok) {
                 const errorData = await response.json();

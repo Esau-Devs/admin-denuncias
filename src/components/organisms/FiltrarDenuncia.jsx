@@ -205,7 +205,7 @@ const FiltrarDenuncia = () => {
                                     <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">
                                         Proceso de la Denuncia
                                     </h3>
-                                    <TimelineViewer denunciaId={denuncia.id} />
+                                    <TimelineViewer denunciaId={denuncia.id} isAdmin={true} />
                                 </div>
 
                                 <div className="border-t border-gray-200 pt-6">
