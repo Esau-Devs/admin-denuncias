@@ -1,36 +1,35 @@
-
 import React, { useState, useEffect } from 'react';
 import { fetchDenuncias, updateDenunciaEstado } from '../../lib/data.ts';
 import DenunciaCard from '../molecules/DenunciaCard.jsx';
 import { SearchIcon, StateIcon } from '../../icons/AllIcons.jsx';
+import { TimelineViewer, AdminTimelineManager } from '../organisms/TimelineDenuncia.jsx';
 
 const FiltrarDenuncia = () => {
-    // 1. Estados principales para datos y UI
+    // Estados principales
     const [allDenuncias, setAllDenuncias] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // 2. Estados para el filtrado
+    // Estados para el filtrado
     const [filter, setFilter] = useState({
         estado: '',
         search: '',
     });
 
-    // 3. Estados para los contadores 
+    // Estados para los contadores 
     const [counts, setCounts] = useState({
         total: 0,
         pendiente: 0,
         enproceso: 0,
         resuelta: 0,
+        no_corresponde: 0,
     });
 
-    // 4. Estados para el Modal
+    // Estados para el Modal
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDenuncia, setSelectedDenuncia] = useState(null);
 
-    const availableStates = ['pendiente', 'en_proceso', 'resuelta'];
-
-    //  FUNCIÓN DE RECARGA
+    // FUNCIÓN DE RECARGA
     const refreshDenuncias = async () => {
         setLoading(true);
         try {
@@ -44,12 +43,12 @@ const FiltrarDenuncia = () => {
         }
     };
 
-    // 4. Lógica de carga de datos al inicio (SOLO CARGA INICIAL)
+    // Lógica de carga de datos al inicio
     useEffect(() => {
         refreshDenuncias();
     }, []);
 
-    // 5. Lógica de cálculo de contadores y actualización del DOM
+    // Lógica de cálculo de contadores
     useEffect(() => {
         if (allDenuncias.length > 0) {
             const safeFilter = (estadoData) => allDenuncias.filter(d =>
@@ -60,11 +59,11 @@ const FiltrarDenuncia = () => {
             const pendiente = safeFilter('pendiente');
             const enproceso = safeFilter('en_proceso');
             const resuelta = safeFilter('resuelta');
+            const no_corresponde = safeFilter('no_corresponde');
 
-            const newCounts = { total, pendiente, enproceso, resuelta };
+            const newCounts = { total, pendiente, enproceso, resuelta, no_corresponde };
             setCounts(newCounts);
 
-            // Despacho de evento para el contador en home.astro
             if (typeof window !== 'undefined') {
                 const event = new CustomEvent('denunciaDataLoaded', { detail: newCounts });
                 window.dispatchEvent(event);
@@ -72,7 +71,7 @@ const FiltrarDenuncia = () => {
         }
     }, [allDenuncias]);
 
-    // 6. Manejo de cambios en el filtro
+    // Manejo de cambios en el filtro
     const handleFilterChange = (e) => {
         setFilter({
             ...filter,
@@ -80,7 +79,7 @@ const FiltrarDenuncia = () => {
         });
     };
 
-    // --- FUNCIONES DE MANEJO DE MODAL ---
+    // FUNCIONES DE MANEJO DE MODAL
     const handleCardClick = (denuncia) => {
         setSelectedDenuncia(denuncia);
         setIsModalOpen(true);
@@ -91,7 +90,7 @@ const FiltrarDenuncia = () => {
         setTimeout(() => setSelectedDenuncia(null), 300);
     };
 
-    // 7. Lógica de filtrado de denuncias 
+    // Lógica de filtrado de denuncias 
     const filteredDenuncias = allDenuncias.filter(denuncia => {
         const denunciaEstado = denuncia.estado ? denuncia.estado.toLowerCase() : '';
         const filtroEstado = filter.estado.toLowerCase().trim();
@@ -112,52 +111,20 @@ const FiltrarDenuncia = () => {
         return estadoMatch && searchMatch;
     });
 
-
-    // --- 8. COMPONENTE MODAL EN LÍNEA CON DATOS DE USUARIO ---
+    // --- COMPONENTE MODAL PRINCIPAL ---
     const DenunciaDetailModal = ({ denuncia, onClose, onUpdateSuccess }) => {
         if (!denuncia) return null;
 
-        const SUPABASE_STORAGE_BASE_URL = 'https://aikjdjlykotamrgyogtp.supabase.co/storage/v1/object/public/user-evidence-vault/';
+        const [showTimeline, setShowTimeline] = useState(false);
 
-        const [currentStatus, setCurrentStatus] = useState(denuncia.estado.toLowerCase());
-        const [isSaving, setIsSaving] = useState(false);
-
-        const availableStatus = ['pendiente', 'en_proceso', 'resuelta', 'no_corresponde'];
         const statusMap = {
-            pendiente: 'Pendiente',
-            en_proceso: 'En proceso',
-            resuelta: 'Resuelta',
-            no_corresponde: 'No Corresponde'
+            pendiente: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700' },
+            en_proceso: { label: 'En Proceso', color: 'bg-blue-100 text-blue-700' },
+            resuelta: { label: 'Resuelta', color: 'bg-green-100 text-green-700' },
+            no_corresponde: { label: 'No Corresponde', color: 'bg-red-100 text-red-700' }
         };
 
-        const getEstadoColor = (estado) => {
-            switch (estado?.toLowerCase()) {
-                case 'pendiente': return 'bg-yellow-100 text-yellow-700';
-                case 'en_proceso': return 'bg-blue-100 text-blue-700';
-                case 'resuelta': return 'bg-green-100 text-green-700';
-                case 'no_corresponde': return 'bg-red-100 text-red-700';
-                default: return 'bg-gray-100 text-gray-700';
-            }
-        };
-
-        const handleSaveStatus = async () => {
-            if (currentStatus === denuncia.estado.toLowerCase()) {
-                alert('El estado ya es el seleccionado.');
-                return;
-            }
-
-            setIsSaving(true);
-            try {
-                await updateDenunciaEstado(denuncia.id, currentStatus);
-                onUpdateSuccess();
-                onClose();
-            } catch (error) {
-                console.error("Error al guardar el nuevo estado:", error);
-                alert('Fallo al actualizar el estado. Revisa la consola y la API.');
-            } finally {
-                setIsSaving(false);
-            }
-        };
+        const currentStatusInfo = statusMap[denuncia.estado.toLowerCase()] || statusMap.pendiente;
 
         const formattedDate = new Date(denuncia.fecha_creacion).toLocaleDateString('es-ES', {
             year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -181,137 +148,159 @@ const FiltrarDenuncia = () => {
             }
         }
 
+        const handleTimelineSuccess = () => {
+            if (onUpdateSuccess) {
+                onUpdateSuccess();
+            }
+        };
+
         return (
-            <div className="fixed inset-0 bg-white/5 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-xl py-8 px-6 md:px-8 w-full max-w-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm p-4">
+                <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
 
-                    <button
-                        onClick={onClose}
-                        className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition cursor-pointer"
-                    >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-
-                    <h2 className="text-xl font-bold text-gray-900 mt-0 mb-4">
-                        Detalles de Denuncia
-                    </h2>
-
-                    <hr className="border-t-2 border-gray-200 opacity-75 mb-6" />
-                    {/* BLOQUE: CAMBIADOR DE ESTADO */}
-                    <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                        <div className="flex items-center gap-3 w-full">
-                            <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Estado actual:</span>
-                            <span className={`${getEstadoColor(currentStatus)} text-sm font-bold px-3 py-1 rounded-full uppercase flex-shrink-0`}>
-                                {statusMap[currentStatus]}
-                            </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 w-full md:w-auto flex-shrink-0">
-                            <select
-                                value={currentStatus}
-                                onChange={(e) => setCurrentStatus(e.target.value)}
-                                className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0c3b87] focus:border-[#0c3b87] w-full"
-                                disabled={isSaving}
-                            >
-                                {availableStatus.map(status => (
-                                    <option key={status} value={status}>
-                                        {statusMap[status]}
-                                    </option>
-                                ))}
-                            </select>
+                    {/* Header */}
+                    <div className="bg-white p-6 flex-shrink-0 border-b border-gray-200">
+                        <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                                <h2 className="text-xl font-bold text-gray-900">
+                                    Detalles de Denuncia
+                                </h2>
+                                <p className="text-gray-500 text-sm mt-1">
+                                    ID: {denuncia.id} • {denuncia.categoria}
+                                </p>
+                            </div>
                             <button
-                                onClick={handleSaveStatus}
-                                className={`px-4 py-2 rounded-lg text-white font-semibold transition duration-200 whitespace-nowrap ${isSaving || currentStatus === denuncia.estado.toLowerCase()
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-[#0c3b87] hover:bg-[#092a5f]'
-                                    }`}
-                                disabled={isSaving || currentStatus === denuncia.estado.toLowerCase()}
+                                onClick={onClose}
+                                className="ml-4 text-gray-500 hover:text-gray-800 transition cursor-pointer"
                             >
-                                {isSaving ? 'Guardando...' : 'Guardar Cambio'}
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                             </button>
                         </div>
                     </div>
 
-                    {/* 👤 NUEVA SECCIÓN: INFORMACIÓN DEL DENUNCIANTE */}
-                    <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
-                        <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
-                            </svg>
-                            Información del Denunciante
-                        </h3>
-                        <div className="space-y-2">
-                            <p className="flex items-center gap-2">
-                                <span className="text-sm text-blue-700 font-medium">Nombre:</span>
-                                <span className="text-gray-900 font-semibold">
-                                    {denuncia.usuario?.nombre_completo || 'No disponible'}
+                    {/* Contenido */}
+                    <div className="flex-1 overflow-y-auto p-6">
+                        {/* Bloque de Estado */}
+                        <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div className="flex items-center gap-3 w-full">
+                                <span className="text-sm text-gray-500 font-medium whitespace-nowrap">Estado actual:</span>
+                                <span className={`${currentStatusInfo.color} text-sm font-bold px-3 py-1 rounded-full uppercase flex-shrink-0`}>
+                                    {currentStatusInfo.label}
                                 </span>
-                            </p>
-                            <p className="flex items-center gap-2">
-                                <span className="text-sm text-blue-700 font-medium">DUI:</span>
-                                <span className="text-gray-900 font-mono font-semibold">
-                                    {denuncia.usuario?.dui || 'No disponible'}
-                                </span>
-                            </p>
-                            {denuncia.usuario?.genero && (
-                                <p className="flex items-center gap-2">
-                                    <span className="text-sm text-blue-700 font-medium">Género:</span>
-                                    <span className="text-gray-900 capitalize">
-                                        {denuncia.usuario.genero}
-                                    </span>
-                                </p>
-                            )}
+                            </div>
+                            <button
+                                onClick={() => setShowTimeline(!showTimeline)}
+                                className="px-4 py-2 rounded-lg text-white font-semibold transition duration-200 whitespace-nowrap bg-[#0c3b87] hover:bg-[#092a5f] w-full md:w-auto"
+                            >
+                                {showTimeline ? 'Cerrar Timeline' : 'Timeline'}
+                            </button>
                         </div>
-                    </div>
 
+                        {/* Mostrar Timeline o Detalles */}
+                        {showTimeline ? (
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">
+                                        Proceso de la Denuncia
+                                    </h3>
+                                    <TimelineViewer denunciaId={denuncia.id} />
+                                </div>
 
-
-                    {/* INFORMACIÓN DE LA DENUNCIA */}
-                    <div className="space-y-4 mb-6 text-sm md:text-base">
-                        <p>
-                            <span className="text-sm text-gray-500">Categoría:</span> {denuncia.categoria}
-                        </p>
-                        <p>
-                            <span className="text-sm text-gray-500">Ubicación:</span> {denuncia.ubicacion}
-                        </p>
-
-                        <p className="text-sm text-gray-500 pt-2">Descripción:</p>
-                        <p className="text-gray-700 whitespace-pre-wrap p-4 bg-gray-50 border rounded-lg shadow-inner">
-                            {denuncia.descripcion}
-                        </p>
-
-                        {evidenciasArray.length > 0 && (
+                                <div className="border-t border-gray-200 pt-6">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">
+                                        Agregar Actualización
+                                    </h3>
+                                    <AdminTimelineManager
+                                        denunciaId={denuncia.id}
+                                        estadoActual={denuncia.estado}
+                                        onSuccess={handleTimelineSuccess}
+                                        onClose={() => { }}
+                                    />
+                                </div>
+                            </div>
+                        ) : (
                             <div>
-                                <p className="text-sm text-gray-500 mt-3">Evidencias ({evidenciasArray.length}):</p>
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {evidenciasArray.map((url, index) => {
-                                        const finalUrl = url;
-                                        const cleanedUrl = finalUrl.replace(
-                                            /(\/storage\/v1\/object\/public\/user-evidence-vault\/){2,}/,
-                                            '/storage/v1/object/public/user-evidence-vault/'
-                                        );
+                                {/* Información del Denunciante */}
+                                <div className="mb-6 p-4 border-2 border-blue-200 rounded-lg bg-blue-50">
+                                    <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+                                        </svg>
+                                        Información del Denunciante
+                                    </h3>
+                                    <div className="space-y-2">
+                                        <p className="flex items-center gap-2">
+                                            <span className="text-sm text-blue-700 font-medium">Nombre:</span>
+                                            <span className="text-gray-900 font-semibold">
+                                                {denuncia.usuario?.nombre_completo || 'No disponible'}
+                                            </span>
+                                        </p>
+                                        <p className="flex items-center gap-2">
+                                            <span className="text-sm text-blue-700 font-medium">DUI:</span>
+                                            <span className="text-gray-900 font-mono font-semibold">
+                                                {denuncia.usuario?.dui || 'No disponible'}
+                                            </span>
+                                        </p>
+                                        {denuncia.usuario?.genero && (
+                                            <p className="flex items-center gap-2">
+                                                <span className="text-sm text-blue-700 font-medium">Género:</span>
+                                                <span className="text-gray-900 capitalize">
+                                                    {denuncia.usuario.genero}
+                                                </span>
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
 
-                                        return (
-                                            <a
-                                                key={index}
-                                                href={cleanedUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-900 hover:text-gray-900 hover:underline text-lg truncate max-w-full font-medium"
-                                            >
-                                                Evidencia {index + 1}
-                                            </a>
-                                        );
-                                    })}
+                                {/* Información de la Denuncia */}
+                                <div className="space-y-4 text-sm md:text-base">
+                                    <p>
+                                        <span className="text-sm text-gray-500">Categoría:</span> {denuncia.categoria}
+                                    </p>
+                                    <p>
+                                        <span className="text-sm text-gray-500">Ubicación:</span> {denuncia.ubicacion}
+                                    </p>
+
+                                    <p className="text-sm text-gray-500 pt-2">Descripción:</p>
+                                    <p className="text-gray-700 whitespace-pre-wrap p-4 bg-gray-50 border rounded-lg shadow-inner">
+                                        {denuncia.descripcion}
+                                    </p>
+
+                                    {evidenciasArray.length > 0 && (
+                                        <div>
+                                            <p className="text-sm text-gray-500 mt-3">Evidencias ({evidenciasArray.length}):</p>
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {evidenciasArray.map((url, index) => {
+                                                    const cleanedUrl = url.replace(
+                                                        /(\/storage\/v1\/object\/public\/user-evidence-vault\/){2,}/,
+                                                        '/storage/v1/object/public/user-evidence-vault/'
+                                                    );
+
+                                                    return (
+                                                        <a
+                                                            key={index}
+                                                            href={cleanedUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-900 hover:text-gray-900 hover:underline text-lg truncate max-w-full font-medium"
+                                                        >
+                                                            Evidencia {index + 1}
+                                                        </a>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <p>
+                                        <span className="text-sm text-gray-500">Fecha de Creación:</span>
+                                    </p>
+                                    <p>{formattedDate}</p>
                                 </div>
                             </div>
                         )}
-                        <p>
-                            <span className="text-sm text-gray-500">Fecha de Creación:</span>
-                            <p>{formattedDate}</p>
-                        </p>
                     </div>
                 </div>
             </div>
@@ -330,7 +319,6 @@ const FiltrarDenuncia = () => {
         <div className="py-6">
             {/* Sección de Filtros */}
             <section className="flex flex-col md:flex-row gap-4 p-4 mb-6 bg-white border border-gray-200 rounded-xl shadow-md">
-                {/* 1. Búsqueda por texto */}
                 <div className="relative flex-grow">
                     <input
                         type="text"
@@ -343,7 +331,6 @@ const FiltrarDenuncia = () => {
                     <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 </div>
 
-                {/* 2. Filtrar por Estado */}
                 <div className="relative w-full md:w-56">
                     <select
                         name="estado"
@@ -378,7 +365,6 @@ const FiltrarDenuncia = () => {
                     </div>
                 )}
 
-                {/* Grid para mostrar las denuncias */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {!loading && !error && filteredDenuncias.map(denuncia => (
                         <DenunciaCard
