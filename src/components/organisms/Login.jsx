@@ -3,7 +3,6 @@ import { User, Eyes, Gmail, EyesLash } from "../../icons/AllIcons.jsx";
 import { supabase } from "../../lib/supabaseClient.js";
 
 export const Login = () => {
-    // 1. Estados para formulario y UI
     const [formData, setFormData] = useState({
         email: "",
         password: ""
@@ -12,13 +11,11 @@ export const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // 2. Función para mostrar mensajes de error/info
     const showMessage = (message) => {
         setError(message);
         setTimeout(() => setError(""), 5000);
     };
 
-    // Funciones de manejo de UI
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -30,7 +27,39 @@ export const Login = () => {
         setShowPassword((prev) => !prev);
     };
 
-    // 3. Lógica de inicio de sesión con Email y Contraseña (Supabase)
+    // 🔑 FUNCIÓN NUEVA: Intercambiar sesión de Supabase por token del backend
+    const exchangeTokenWithBackend = async (userId) => {
+        try {
+            const formData = new FormData();
+            formData.append('user_id', userId);
+
+            const response = await fetch('https://backend-api-638220759621.us-west1.run.app/token/verify-supabase', {
+                method: 'POST',
+                credentials: 'include', // Para recibir cookie HttpOnly
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Error obteniendo token del backend');
+            }
+
+            const data = await response.json();
+
+            // Guardar token en localStorage
+            if (data.access_token) {
+                localStorage.setItem('token', data.access_token);
+                console.log('✅ Token del backend guardado');
+                return true;
+            }
+
+            return false;
+
+        } catch (err) {
+            console.error('❌ Error intercambiando token:', err);
+            return false;
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (loading) return;
@@ -39,7 +68,8 @@ export const Login = () => {
         setLoading(true);
 
         try {
-            const { error: authError } = await supabase.auth.signInWithPassword({
+            // 1. Login con Supabase
+            const { data, error: authError } = await supabase.auth.signInWithPassword({
                 email: formData.email,
                 password: formData.password,
             });
@@ -51,7 +81,20 @@ export const Login = () => {
                     showMessage("Error al iniciar sesión: " + authError.message);
                 }
             } else {
-                window.location.href = '/home';
+                // 2. Obtener token del backend
+                const userId = data.user?.id;
+                if (userId) {
+                    const tokenObtenido = await exchangeTokenWithBackend(userId);
+
+                    if (tokenObtenido) {
+                        console.log('✅ Autenticación completa');
+                        window.location.href = '/home';
+                    } else {
+                        showMessage("Error obteniendo credenciales del servidor.");
+                    }
+                } else {
+                    showMessage("Error: no se pudo obtener ID de usuario.");
+                }
             }
         } catch (err) {
             showMessage("Ocurrió un error inesperado durante el login.");
@@ -61,7 +104,6 @@ export const Login = () => {
         }
     }
 
-    // 4. Lógica de inicio de sesión con Google Auth (Supabase)
     const handleGoogleLogin = async () => {
         if (loading) return;
 
@@ -89,7 +131,6 @@ export const Login = () => {
 
     return (
         <div className="mt-6 w-full">
-            {/* Mensaje de Error/Carga */}
             {error && (
                 <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg shadow-md transition-all duration-300 border border-red-200">
                     {error}
@@ -101,7 +142,6 @@ export const Login = () => {
                 </div>
             )}
 
-            {/* ESTRUCTURA DEL FORMULARIO EMAIL/PASSWORD */}
             <form onSubmit={handleSubmit}>
                 <div className="relative mb-4 flex flex-row justify-center items-center bg-white shadow-md rounded-lg">
                     <input
@@ -167,8 +207,6 @@ export const Login = () => {
                     {loading ? "Verificando..." : "Iniciar sesión"}
                 </button>
             </form>
-
-
         </div>
     )
 }
