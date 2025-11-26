@@ -180,6 +180,7 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
     const [modoCreacion, setModoCreacion] = useState('plantillas');
     const [loading, setLoading] = useState(false);
     const [plantillaSeleccionada, setPlantillaSeleccionada] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
 
     const [formData, setFormData] = useState({
         titulo: '',
@@ -317,7 +318,7 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
             }
 
             const result = await response.json();
-            console.log('✅ Timeline agregado:', result);
+
 
             alert('✓ Timeline agregado exitosamente');
             setPlantillaSeleccionada(null);
@@ -397,9 +398,11 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
             }
 
             const result = await response.json();
-            console.log('✅ Timeline personalizado agregado:', result);
 
-            alert('✓ Timeline personalizado agregado exitosamente');
+
+            setModalVisible(true);
+            setTimeout(() => setModalVisible(false), 3000);
+
 
             setFormData({
                 titulo: '',
@@ -422,6 +425,14 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
 
     return (
         <div className="bg-white w-full">
+            {modalVisible && (
+                <article className="fixed right-5 top-24 bg-white border-l-4 border-green-600 shadow-lg rounded-md p-4 w-72 z-50 animate-fade-in-up">
+                    <div className="text-green-700 font-bold mb-1">¡Éxito!</div>
+                    <p className="text-sm text-gray-700">
+                        ¡Timeline enviada y almacenada correctamente!
+                    </p>
+                </article>
+            )}
             <div className="space-y-4">
                 {/* Botones de acción principales */}
                 <div className="flex gap-2">

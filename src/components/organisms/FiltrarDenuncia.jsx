@@ -22,7 +22,7 @@ const FiltrarDenuncia = () => {
         pendiente: 0,
         enproceso: 0,
         resuelta: 0,
-        no_corresponde: 0,
+        nocorresponde: 0,
     });
 
     // Estados para el Modal
@@ -59,9 +59,9 @@ const FiltrarDenuncia = () => {
             const pendiente = safeFilter('pendiente');
             const enproceso = safeFilter('en_proceso');
             const resuelta = safeFilter('resuelta');
-            const no_corresponde = safeFilter('no_corresponde');
+            const nocorresponde = safeFilter('no_corresponde');
 
-            const newCounts = { total, pendiente, enproceso, resuelta, no_corresponde };
+            const newCounts = { total, pendiente, enproceso, resuelta, nocorresponde };
             setCounts(newCounts);
 
             if (typeof window !== 'undefined') {
