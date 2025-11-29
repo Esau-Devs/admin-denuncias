@@ -7,7 +7,7 @@ let TotalDenuncias = 0;
 let Pendiente = 0;
 let Enproceso = 0;
 let resuelta = 0;
-let no_corresponde = 0;
+let nocorresponde = 0;
 ---
 
 <Layout title="Inicio de denuncias">
@@ -93,10 +93,10 @@ let no_corresponde = 0;
                         class="bg-white border border-gray-300 p-6 rounded-2xl shadow-sm text-center hover:shadow-md transition-shadow"
                     >
                         <span
-                            id="resuelta-denuncias"
+                            id="nocorresponde-denuncias"
                             class="text-4xl font-semibold text-black"
                         >
-                            {no_corresponde}
+                            {nocorresponde}
                         </span>
                         <p class="text-sm text-gray-600 mt-2">
                             Denuncias que no corresponden
@@ -155,8 +155,8 @@ astro<!-- Script de protección de ruta -->
                 counts.enproceso;
             document.getElementById("resuelta-denuncias").textContent =
                 counts.resuelta;
-            document.getElementById("no_corresponde-denuncias").textContent =
-                counts.no_corresponde;
+            document.getElementById("nocorresponde-denuncias").textContent =
+                counts.nocorresponde;
         };
 
         window.addEventListener("denunciaDataLoaded", (event) => {

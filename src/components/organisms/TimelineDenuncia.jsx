@@ -6,7 +6,6 @@ export const TimelineViewer = ({ denunciaId, isAdmin = false }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Obtener URL del backend desde variable de entorno
     const API_URL = 'https://backend-api-638220759621.us-west1.run.app';
 
     useEffect(() => {
@@ -15,7 +14,6 @@ export const TimelineViewer = ({ denunciaId, isAdmin = false }) => {
                 setLoading(true);
                 setError(null);
 
-                // Si es admin, usa el endpoint sin verificación de ownership
                 const endpoint = isAdmin
                     ? `${API_URL}/timeline/todas/${denunciaId}`
                     : `${API_URL}/timeline/${denunciaId}`;
@@ -96,23 +94,19 @@ export const TimelineViewer = ({ denunciaId, isAdmin = false }) => {
     return (
         <div className="w-full">
             <div className="relative">
-                {/* Línea vertical del timeline */}
                 <div className="absolute left-4 top-6 bottom-0 w-px bg-gray-300"></div>
 
-                {/* Entradas del timeline */}
                 <div className="space-y-4">
                     {timelineData.map((entry, index) => {
                         const isLast = index === timelineData.length - 1;
 
                         return (
                             <div key={entry.id} className="relative pl-12">
-                                {/* Punto indicador */}
                                 <div className={`absolute left-0 w-8 h-8 rounded-full flex items-center justify-center border-2 ${isLast ? 'bg-gray-700 border-gray-700' : 'bg-white border-gray-300'
                                     }`}>
                                     <div className={`w-2 h-2 rounded-full ${isLast ? 'bg-white' : 'bg-gray-400'}`}></div>
                                 </div>
 
-                                {/* Tarjeta de contenido */}
                                 <div className={`bg-gray-50 border border-gray-200 rounded-lg p-4 ${isLast ? 'ring-2 ring-gray-300' : ''}`}>
                                     <div className="flex justify-between items-start mb-2">
                                         <h4 className="font-bold text-gray-900 text-sm">
@@ -177,10 +171,11 @@ export const TimelineViewer = ({ denunciaId, isAdmin = false }) => {
 
 // --- COMPONENTE: ADMIN TIMELINE MANAGER (CON SOPORTE PARA TOKEN) ---
 export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onClose }) => {
+    // ✅ TODOS LOS ESTADOS AL INICIO
     const [modoCreacion, setModoCreacion] = useState('plantillas');
     const [loading, setLoading] = useState(false);
     const [plantillaSeleccionada, setPlantillaSeleccionada] = useState(null);
-    const [modalVisible, setModalVisible] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false); // ← AQUÍ ESTÁ BIEN
 
     const [formData, setFormData] = useState({
         titulo: '',
@@ -196,11 +191,8 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
 
     // 🔑 FUNCIÓN PARA OBTENER TOKEN
     const getAuthHeaders = () => {
-        const headers = {
-            // NO incluir Content-Type aquí porque usamos FormData
-        };
+        const headers = {};
 
-        // Intentar obtener token del localStorage/sessionStorage
         const token =
             localStorage.getItem('token') ||
             localStorage.getItem('access_token') ||
@@ -217,7 +209,7 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
         return headers;
     };
 
-    // PLANTILLAS COMPLETAS SEGÚN PROCESO FGR (las mismas 30)
+    // PLANTILLAS COMPLETAS
     const todasLasPlantillas = [
         { tipo: 'recepcion', titulo: 'Denuncia Recibida', descripcion: 'Su denuncia ha sido recibida y registrada en el sistema. Se le ha asignado un número de caso y está en proceso de evaluación preliminar.', estado_asociado: 'pendiente' },
         { tipo: 'asignacion_fiscal', titulo: 'Fiscal Asignado', descripcion: 'Se ha asignado un Fiscal Auxiliar para la evaluación inicial de su denuncia.', estado_asociado: 'pendiente' },
@@ -249,7 +241,6 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
         { tipo: 'actualizacion_general', titulo: 'Actualización del Proceso', descripcion: 'Se ha registrado una actualización en el proceso de su denuncia.', estado_asociado: 'en_proceso' }
     ];
 
-    // Jerarquía de estados
     const estadoJerarquia = {
         'pendiente': 0,
         'en_proceso': 1,
@@ -257,7 +248,6 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
         'no_corresponde': 2
     };
 
-    // Filtrar plantillas según el estado actual
     const plantillasPredefinidas = todasLasPlantillas.filter(plantilla => {
         const estadoPlantilla = plantilla.estado_asociado;
         const nivelActual = estadoJerarquia[estadoActual?.toLowerCase()] || 0;
@@ -265,7 +255,6 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
         return nivelPlantilla >= nivelActual;
     });
 
-    // Estados permitidos para formulario personalizado
     const estadosPermitidos = [
         { value: 'pendiente', label: 'Pendiente', nivel: 0 },
         { value: 'en_proceso', label: 'En Proceso', nivel: 1 },
@@ -300,12 +289,11 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
 
             console.log('📤 Enviando timeline a:', `${API_URL}/timeline/crear`);
 
-            // 🔑 Obtener headers con token
             const headers = getAuthHeaders();
 
             const response = await fetch(`${API_URL}/timeline/crear`, {
                 method: 'POST',
-                credentials: 'include', // También enviar cookies por si acaso
+                credentials: 'include',
                 headers: headers,
                 body: formDataToSend
             });
@@ -318,10 +306,12 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
             }
 
             const result = await response.json();
+            console.log('✅ Timeline agregado:', result);
 
-
-            alert('✓ Timeline agregado exitosamente');
+            // ✅ Mostrar modal
+            setModalVisible(true);
             setPlantillaSeleccionada(null);
+            setTimeout(() => setModalVisible(false), 3000);
 
             if (onSuccess) onSuccess();
 
@@ -382,7 +372,6 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
             formDataToSend.append('nombre_actualizador', formData.nombre_actualizador);
             formDataToSend.append('metadata_json', JSON.stringify(metadataObj));
 
-            // 🔑 Obtener headers con token
             const headers = getAuthHeaders();
 
             const response = await fetch(`${API_URL}/timeline/crear`, {
@@ -398,11 +387,11 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
             }
 
             const result = await response.json();
+            console.log('✅ Timeline personalizado agregado:', result);
 
-
+            // ✅ Mostrar modal
             setModalVisible(true);
             setTimeout(() => setModalVisible(false), 3000);
-
 
             setFormData({
                 titulo: '',
@@ -425,16 +414,18 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
 
     return (
         <div className="bg-white w-full">
+            {/* ✅ MODAL DE ÉXITO */}
             {modalVisible && (
                 <article className="fixed right-5 top-24 bg-white border-l-4 border-green-600 shadow-lg rounded-md p-4 w-72 z-50 animate-fade-in-up">
                     <div className="text-green-700 font-bold mb-1">¡Éxito!</div>
                     <p className="text-sm text-gray-700">
-                        ¡Timeline enviada y almacenada correctamente!
+                        ¡Timeline enviado exitosamente!
                     </p>
                 </article>
             )}
+
             <div className="space-y-4">
-                {/* Botones de acción principales */}
+                {/* Botones de modo */}
                 <div className="flex gap-2">
                     <button
                         onClick={() => setModoCreacion('plantillas')}
@@ -456,7 +447,7 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
                     </button>
                 </div>
 
-                {/* MODO: SELECCIONAR PLANTILLA */}
+                {/* MODO: PLANTILLAS */}
                 {modoCreacion === 'plantillas' && (
                     <div>
                         <label className="block text-xs font-medium text-gray-500 mb-2 uppercase tracking-wide">
@@ -622,7 +613,6 @@ export const AdminTimelineManager = ({ denunciaId, estadoActual, onSuccess, onCl
                             )}
                         </div>
 
-                        {/* Botón submit */}
                         <button
                             type="submit"
                             disabled={loading}

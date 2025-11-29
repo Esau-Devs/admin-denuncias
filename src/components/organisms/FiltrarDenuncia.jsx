@@ -55,12 +55,12 @@ const FiltrarDenuncia = () => {
                 d && d.estado && d.estado.toLowerCase() === estadoData
             ).length;
 
+
             const total = allDenuncias.length;
             const pendiente = safeFilter('pendiente');
             const enproceso = safeFilter('en_proceso');
             const resuelta = safeFilter('resuelta');
             const nocorresponde = safeFilter('no_corresponde');
-
             const newCounts = { total, pendiente, enproceso, resuelta, nocorresponde };
             setCounts(newCounts);
 
